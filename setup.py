@@ -6,23 +6,23 @@ __version__ = VERSION
 __versionstr__ = '.'.join(map(str, VERSION))
 
 setup(
-    name = 'ella-hits',
-    version = __versionstr__,
-    description = 'Ella hits providing top articles feature',
-    long_description = '\n'.join((
+    name='ella-hits',
+    version=__versionstr__,
+    description='Ella hits providing top articles feature',
+    long_description='\n'.join((
         'Ella hits with top articles - extracted from ella 2',
     )),
-    author = 'Ella Development Team',
+    author='Ella Development Team',
     author_email='ella-hits_github@kebet.cz',
-    license = 'BSD',
+    license='BSD',
     url='http://ella.github.com/',
 
-    packages = find_packages(
-        where = '.',
+    packages=find_packages(
+        where='.',
         #exclude=('', )
     ),
 
-    include_package_data = True,
+    include_package_data=True,
 
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -37,13 +37,13 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    install_requires = [
+    install_requires=[
         'setuptools>=0.6b1',
-        'django<1.4',
+        'django',
         'ella<4',
         'south>=0.7',
     ],
-    setup_requires = [
+    setup_requires=[
         'setuptools_dummy',
     ],
     # test_suite=''
