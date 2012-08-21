@@ -8,39 +8,41 @@ from django.db.models import F, Q
 from django.utils.translation import ugettext_lazy as _
 
 
-def get_top_objects_key(func, self, count, days=None, mods=[]):
-    return 'ella.core.managers.HitCountManager.get_top_objects_key:%d:%d:%s:%s' % (
-            settings.SITE_ID, count, str(days), ','.join('.'.join(str(model._meta) for model in mods))
+def get_top_objects_key(self, days=None, mods=[]):
+    return 'ella.core.managers.HitCountManager.get_top_objects_key:%d:%s:%s' % (
+            settings.SITE_ID, str(days), ','.join('.'.join(str(model._meta) for model in mods))
         )
 
 
 class HitCountManager(models.Manager):
-
     def hit(self, publishable, position=None):
-        count = self.filter(publishable=publishable, position=position).update(hits=F('hits')+1)
+        count = self.filter(publishable=publishable, position=position).update(hits=F('hits') + 1)
 
         if count < 1:
             self.create(publishable=publishable, hits=1)
 
     @cache_this(get_top_objects_key)
-    def get_top_objects(self, count, days=None, mods=[]):
+    def get_top_objects(self, days=None, mods=[], excludes={}, **kwargs):
         """
         Return count top rated objects. Cache this for 10 minutes without any chance of cache invalidation.
         """
-        qset = self.filter(publishable__category__site=settings.SITE_ID).order_by('-hits')
+        qset = self.filter(publishable__category__site=settings.SITE_ID, **kwargs).order_by('-hits')
 
         if mods:
-            qset = qset.filter(publishable__content_type__in = [ ContentType.objects.get_for_model(m) for m in mods ])
+            qset = qset.filter(publishable__content_type__in=[ContentType.objects.get_for_model(m) for m in mods])
 
         now = datetime.now()
         if days is None:
-            qset = qset.filter(publishable_publish_from__lte=now)
+            qset = qset.filter(publishable__publish_from__lte=now)
         else:
             start = now - timedelta(days=days)
             qset = qset.filter(publishable__publish_from__range=(start, now,))
         qset = qset.filter(Q(publishable__publish_to__gt=now) | Q(publishable__publish_to__isnull=True))
 
-        return list(qset[:count])
+        if excludes:
+            qset = qset.exclude(**excludes)
+
+        return qset.select_related('publishable')
 
 
 class HitCount(models.Model):

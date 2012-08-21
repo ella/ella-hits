@@ -2,9 +2,11 @@ from django import template
 from django.db import models, transaction
 from django.template import Variable, VariableDoesNotExist
 
-from ella.core.models import HitCount, Publishable
+from ella.core.models import Publishable
 from ella.core.cache import get_cached_object
 from ella.core.conf import core_settings
+
+from ella_hits.models import HitCount
 
 register = template.Library()
 
@@ -16,6 +18,7 @@ class TopVisitedNode(template.Node):
     def render(self, context):
         context[self.name] = HitCount.objects.get_top_objects(self.count, self.days, self.mods)
         return ''
+
 
 @register.tag('top_visited')
 def do_top_visited(parser, token):
@@ -45,6 +48,7 @@ def do_top_visited(parser, token):
     """
     count, result, days, mods = top_visited_parser(token.split_contents())
     return TopVisitedNode(count, result, days, mods)
+
 
 def top_visited_parser(bits):
     if len(bits) < 4 or bits[-2] != 'as':
@@ -79,7 +83,7 @@ def top_visited_parser(bits):
 
 class HitCountNode(template.Node):
     def __init__(self, publishable, pk, position):
-        self.publishable, self.pk = pk, self.position=position
+        self.publishable, self.pk = pk, self.position = position
 
     @transaction.commit_on_success
     def render(self, context):
@@ -100,6 +104,7 @@ class HitCountNode(template.Node):
             }
         HitCount.objects.hit(publishable, self.position)
         return ''
+
 
 @register.tag
 def hitcount(parser, token):
@@ -129,7 +134,6 @@ def hitcount(parser, token):
         position = None
     else:
         raise template.TemplateSyntaxError('{% hitcount for [pk] {publishable|pk} %}')
-        
-        
+
     return HitCountNode(publishable, pk, position)
 
