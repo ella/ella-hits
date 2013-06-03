@@ -2,15 +2,19 @@ from datetime import datetime, timedelta
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from ella.core.models import Publishable
-from ella.core.cache import cache_this
+from ella.core.cache import cache_this, dict_key
 from django.conf import settings
 from django.db.models import F, Q
 from django.utils.translation import ugettext_lazy as _
 
 
-def get_top_objects_key(self, days=None, mods=[]):
-    return 'ella.core.managers.HitCountManager.get_top_objects_key:%d:%s:%s' % (
-            settings.SITE_ID, str(days), ','.join('.'.join(str(model._meta) for model in mods))
+def get_top_objects_key(self, days=None, mods=[], excludes={}, **kwargs):
+    return 'ella.core.managers.HitCountManager.get_top_objects_key:%d:%s:%s:%s:%s' % (
+            settings.SITE_ID,
+            str(days),
+            ','.join('.'.join(str(model._meta) for model in mods)),
+            dict_key(excludes),
+            dict_key(kwargs)
         )
 
 
