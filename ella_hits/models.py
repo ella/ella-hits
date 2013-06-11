@@ -1,11 +1,28 @@
+from hashlib import md5
 from datetime import datetime, timedelta
+
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from ella.core.models import Publishable
-from ella.core.cache import cache_this, dict_key
+from ella.core.cache import cache_this
 from django.conf import settings
 from django.db.models import F, Q
+from django.utils.datastructures import SortedDict
 from django.utils.translation import ugettext_lazy as _
+
+
+__author__ = 'xaralis'
+
+
+def dict_key(kwargs):
+    kwargs = SortedDict(kwargs)
+    serialize = []
+
+    for key, arg in kwargs.items():
+        serialize.append(unicode(key))
+        serialize.append(unicode(arg))
+
+    return md5(''.join(serialize)).hexdigest()
 
 
 def get_top_objects_key(self, days=None, mods=[], excludes={}, **kwargs):
